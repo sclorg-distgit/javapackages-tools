@@ -1,0 +1,26 @@
+From 5f288d664de147f4aa4f6685004c73b5e6c36593 Mon Sep 17 00:00:00 2001
+From: Michael Simacek <msimacek@redhat.com>
+Date: Wed, 11 Feb 2015 14:06:21 +0100
+Subject: [PATCH] [java-functions] Fix incorrect quotation (rhbz#1178560)
+
+---
+ java-utils/java-functions | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/java-utils/java-functions b/java-utils/java-functions
+index 8f6e22b..68e5593 100644
+--- a/java-utils/java-functions
++++ b/java-utils/java-functions
+@@ -297,8 +297,7 @@ run()
+     fi
+ 
+     # let's start
+-    exec "${JAVACMD}" ${FLAGS} -classpath "${CLASSPATH}" \
+-	${OPTIONS} "${MAIN_CLASS}" "${@}"
++    eval "exec \"\${JAVACMD}\" ${FLAGS} -classpath \"\${CLASSPATH}\" ${OPTIONS} \"\${MAIN_CLASS}\" \"\${@}\""
+ }
+ 
+ # Set JVM-related directories
+-- 
+2.4.3
+

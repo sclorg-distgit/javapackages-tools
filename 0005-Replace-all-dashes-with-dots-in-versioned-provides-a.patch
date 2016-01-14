@@ -1,0 +1,113 @@
+From c6b3aeb083ce44016d6f55ef5055f9761604a17e Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 14 Jan 2015 10:07:49 +0100
+Subject: [PATCH] Replace all dashes with dots in versioned provides and
+ requires
+
+e.g.:
+mvn(org.codehaus.plexus:plexus-interactivity-api) = 1.0-alpha-6
+will become:
+mvn(org.codehaus.plexus:plexus-interactivity-api) = 1.0.alpha.6
+
+This should prevent triggering of following error:
+Error: Package: plexus-interactivity-jline-1.0-0.14.alpha6.10.fc22.noarch
+    Requires: mvn(org.codehaus.plexus:plexus-interactivity-api) = 1.0-alpha-6
+    Removing: plexus-interactivity-api-1.0-0.14.alpha6.9.fc22.noarch
+        mvn(org.codehaus.plexus:plexus-interactivity-api) = 1.0-alpha-6
+    Updated By: plexus-interactivity-api-1.0-0.14.alpha6.10.fc22.noarch
+        mvn(org.codehaus.plexus:plexus-interactivity-api) = 1.0-alpha-6
+---
+ python/javapackages/common/osgi.py   | 29 ++++++++++++++++++-----------
+ python/javapackages/common/util.py   |  6 ++++++
+ python/javapackages/maven/printer.py |  3 +++
+ 3 files changed, 27 insertions(+), 11 deletions(-)
+
+diff --git a/python/javapackages/common/osgi.py b/python/javapackages/common/osgi.py
+index 832ae72..760c587 100644
+--- a/python/javapackages/common/osgi.py
++++ b/python/javapackages/common/osgi.py
+@@ -35,6 +35,20 @@
+ import re
+ 
+ from javapackages.common.manifest import Manifest
++from javapackages.common.util import sanitize_version
++
++
++class OSGiUtils(object):
++
++    @staticmethod
++    def get_rpm_str(bundle, version="", namespace=""):
++        ns = namespace or ""
++        version = sanitize_version(version)
++        return "{ns}{d}osgi({bundle}){eq}{version}".format(ns=ns,
++                                                           d="-" if ns else "",
++                                                           bundle=bundle,
++                                                           eq=" = " if version else "",
++                                                           version=version)
+ 
+ 
+ class OSGiRequire(object):
+@@ -75,13 +89,7 @@ class OSGiRequire(object):
+ 
+     def get_rpm_str(self, version="", namespace=""):
+         ns = namespace or self.namespace
+-        verstr = ""
+-        if version:
+-            verstr = " = {ver}".format(ver=version)
+-        return "{ns}{d}osgi({bundle}){verstr}".format(ns=ns,
+-                                                      d="-" if ns else "",
+-                                                      bundle=self.bundle,
+-                                                      verstr=verstr)
++        return OSGiUtils.get_rpm_str(self.bundle, version=version, namespace=ns)
+ 
+ 
+ class OSGiBundle(object):
+@@ -166,7 +174,6 @@ class OSGiBundle(object):
+         return not self.__eq__(other)
+ 
+     def get_rpm_str(self, version="", namespace=""):
+-        return "{ns}{d}osgi({bundle}) = {version}".format(ns=namespace or self.namespace,
+-                                                          d="-" if self.namespace else "",
+-                                                          bundle=self.bundle,
+-                                                          version=version or self.version)
++        ver = version or self.version
++        ns = namespace or self.namespace
++        return OSGiUtils.get_rpm_str(self.bundle, version=ver, namespace=ns)
+diff --git a/python/javapackages/common/util.py b/python/javapackages/common/util.py
+index 37942a4..4ad5474 100644
+--- a/python/javapackages/common/util.py
++++ b/python/javapackages/common/util.py
+@@ -139,3 +139,9 @@ def write_metadata(fileobj, metadata):
+         fileobj.write(dom.toxml())
+     else:
+         fileobj.write(dom.toprettyxml(indent="   "))
++
++
++def sanitize_version(version):
++    if version:
++        return version.replace("-", ".")
++    return ""
+diff --git a/python/javapackages/maven/printer.py b/python/javapackages/maven/printer.py
+index 095da99..4933bfc 100644
+--- a/python/javapackages/maven/printer.py
++++ b/python/javapackages/maven/printer.py
+@@ -31,6 +31,8 @@
+ #
+ # Authors:  Michal Srb <msrb@redhat.com>
+ 
++from javapackages.common.util import sanitize_version
++
+ class Printer(object):
+     @staticmethod
+     def get_mvn_str(gid, aid, ext="", cla="", ver=""):
+@@ -66,6 +68,7 @@ class Printer(object):
+             rpmstr = "{ns}-{rpmstr}".format(ns=namespace, rpmstr=rpmstr)
+ 
+         if pkgver is not None:
++            pkgver = sanitize_version(pkgver)
+             rpmstr = "{rpmstr} = {ver}".format(rpmstr=rpmstr, ver=pkgver)
+ 
+         return rpmstr
+-- 
+2.1.0
+
