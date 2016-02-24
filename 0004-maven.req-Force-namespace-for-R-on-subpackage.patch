@@ -1,0 +1,26 @@
+From 730afd6814711509006706ac622f649e47c98e3f Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 14 Jan 2015 15:16:44 +0100
+Subject: [PATCH] [maven.req] Force namespace for R on subpackage
+
+---
+ depgenerators/maven.req | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/depgenerators/maven.req b/depgenerators/maven.req
+index 48af617..c7c9a57 100755
+--- a/depgenerators/maven.req
++++ b/depgenerators/maven.req
+@@ -176,7 +176,8 @@ class TagBuilder(object):
+             elif req.bundle not in [x.bundle for x in osgi_provs]:
+                 for prov in self.provided_osgi:
+                     if prov.bundle == req.bundle:
+-                        requires.add(req.get_rpm_str(version=prov.version))
++                        requires.add(req.get_rpm_str(version=prov.version,
++                                                     namespace=prov.namespace))
+                         break
+ 
+         _log.info(", ".join(requires))
+-- 
+2.1.0
+

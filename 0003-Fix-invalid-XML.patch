@@ -1,0 +1,25 @@
+From c47b989bc5b62fcad715cba70f7392f898b71114 Mon Sep 17 00:00:00 2001
+From: Mikolaj Izdebski <mizdebsk@redhat.com>
+Date: Wed, 14 Jan 2015 12:06:49 +0100
+Subject: [PATCH 3/3] Fix invalid XML
+
+---
+ configs/configuration-rpmbuild-raw.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/configuration-rpmbuild-raw.xml b/configs/configuration-rpmbuild-raw.xml
+index 1651dea..b969c88 100644
+--- a/configs/configuration-rpmbuild-raw.xml
++++ b/configs/configuration-rpmbuild-raw.xml
+@@ -45,7 +45,7 @@
+       <stereotypes>
+         <stereotype>
+           <extension>hpi</extension>
+-        <stereotype>
++        </stereotype>
+       </stereotypes>
+     </repository>
+     <repository>
+-- 
+2.1.0
+

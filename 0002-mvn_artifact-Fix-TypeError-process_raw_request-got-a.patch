@@ -1,0 +1,85 @@
+From 9b686830f939a27f674f5cd0abead68ae696efd0 Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 7 Jan 2015 00:47:08 +0100
+Subject: [PATCH 2/3] [mvn_artifact] Fix "TypeError: process_raw_request() got
+ an unexpected keyword argument 'scl'"
+
+---
+ java-utils/mvn_artifact.py | 12 +++++-------
+ macros.d/macros.xmvn       |  2 +-
+ 2 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/java-utils/mvn_artifact.py b/java-utils/mvn_artifact.py
+index 0bd97e0..52d6dac 100644
+--- a/java-utils/mvn_artifact.py
++++ b/java-utils/mvn_artifact.py
+@@ -88,7 +88,7 @@ class UnknownVersion(Exception):
+     pass
+ 
+ 
+-def get_parent_pom(pom, scl=None):
++def get_parent_pom(pom):
+     try:
+         metadata = Metadata(config)
+         known_artifacts = metadata.get_provided_artifacts()
+@@ -103,7 +103,7 @@ def get_parent_pom(pom, scl=None):
+ 
+     req = ResolutionRequest(pom.groupId, pom.artifactId,
+                             extension="pom", version=pom.version)
+-    result = XMvnResolve.process_raw_request([req], scl=scl)[0]
++    result = XMvnResolve.process_raw_request([req])[0]
+     if not result:
+         raise Exception("Unable to resolve parent POM")
+ 
+@@ -169,7 +169,7 @@ def expand_props(deps, props):
+         d.interpolate(props)
+ 
+ 
+-def gather_dependencies(pom_path, scl=None):
++def gather_dependencies(pom_path):
+     if not pom_path:
+         return []
+     pom = POM(pom_path)
+@@ -189,7 +189,7 @@ def gather_dependencies(pom_path, scl=None):
+             except PomLoadingException:
+                 pass
+         if not ppom:
+-            ppom = get_parent_pom(parent, scl=scl)
++            ppom = get_parent_pom(parent)
+ 
+         parent = ppom.parent
+         pom_props = get_model_variables(ppom)
+@@ -246,8 +246,6 @@ if __name__ == "__main__":
+                       help="skip dependencies section in resulting metadata")
+     parser.add_option("-D", action="append", type="str",
+                       help="add artifact property", metavar="property=value")
+-    parser.add_option("-n", "--namespace", type="str",
+-                      help=SUPPRESS_HELP, default=None)
+ 
+     sys.argv = args_to_unicode(sys.argv)
+ 
+@@ -300,7 +298,7 @@ if __name__ == "__main__":
+     if (not options.skip_dependencies and pom_path
+        and not is_it_ivy_file(pom_path)):
+         deps = []
+-        mvn_deps = gather_dependencies(pom_path, scl=options.namespace)
++        mvn_deps = gather_dependencies(pom_path)
+         for d in mvn_deps:
+             deps.append(MetadataDependency.from_mvn_dependency(d))
+         if deps:
+diff --git a/macros.d/macros.xmvn b/macros.d/macros.xmvn
+index 1a587fb..e7a6dda 100644
+--- a/macros.d/macros.xmvn
++++ b/macros.d/macros.xmvn
+@@ -118,7 +118,7 @@
+ #
+ # Usage: %mvn_artifact <pom> [<artifact-file>]
+ #
+-%mvn_artifact %{pyinterpreter} %{javadir}-utils/mvn_artifact.py %{?scl:-n %{?scl}}
++%mvn_artifact %{pyinterpreter} %{javadir}-utils/mvn_artifact.py
+ 
+ 
+ # %mvn_build - build Maven project
+-- 
+2.1.0
+
