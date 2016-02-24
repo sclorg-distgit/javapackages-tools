@@ -4,7 +4,7 @@
 
 Name:           %{?scl_prefix}%{pkg_name}
 Version:        4.3.2
-Release:        1.10%{?dist}
+Release:        1.11%{?dist}
 
 Summary:        Macros and scripts for Java packaging support
 
@@ -48,8 +48,8 @@ Provides:       %{?scl_prefix}mvn(sun.jdk:jconsole)
 This package provides macros and scripts to support Java packaging.
 
 %package -n %{?scl_prefix}maven-local
-Summary:        Macros and scripts for Maven packaging support
-Requires:       %{name} = %{version}-%{release}
+Summary:        Support for Maven packaging
+Requires:       %{?scl_prefix}maven-local-support = %{version}-%{release}
 Requires:       %{?scl_prefix}javapackages-local = %{version}-%{release}
 Requires:       %{?scl_prefix_maven}maven
 Requires:       %{?scl_prefix_maven}xmvn >= 2
@@ -87,18 +87,39 @@ Requires:       %{?scl_prefix_maven}maven-surefire-provider-junit
 Requires:       %{?scl_prefix_maven}maven-surefire-provider-testng
 
 %description -n %{?scl_prefix}maven-local
-This package provides macros and scripts to support packaging Maven artifacts.
+This package provides tools to support packaging Maven artifacts.
+
+%package -n %{?scl_prefix}maven-local-support
+Summary:        Macros and scripts for Maven packaging support
+Requires:       %{name} = %{version}-%{release}
+Requires:       %{?scl_prefix}javapackages-local-support = %{version}-%{release}
+
+%description -n %{?scl_prefix}maven-local-support
+This package provides macros and scripts to support packaging Maven
+artifacts. To enable all features, it's necessary to install also
+rh-java-common-maven-local package, or <scl-prefix>maven-local package
+from other compatible Software Collection.
 
 %package -n %{?scl_prefix}ivy-local
-Summary:        Local mode for Apache Ivy
-Requires:       %{name} = %{version}-%{release}
+Summary:        Support for Apache Ivy packaging
+Requires:       %{?scl_prefix}ivy-local-support = %{version}-%{release}
 Requires:       %{?scl_prefix}javapackages-local = %{version}-%{release}
 Requires:       %{?scl_prefix_maven}apache-ivy
 Requires:       %{?scl_prefix_maven}xmvn-connector-ivy >= 2
 
 %description -n %{?scl_prefix}ivy-local
-This package implements local mode fow Apache Ivy, which allows
-artifact resolution using XMvn resolver.
+This package provides tools to support Apache Ivy packaging.
+
+%package -n %{?scl_prefix}ivy-local-support
+Summary:        Local mode for Apache Ivy
+Requires:       %{name} = %{version}-%{release}
+Requires:       %{?scl_prefix}javapackages-local-support = %{version}-%{release}
+
+%description -n %{?scl_prefix}ivy-local-support
+This package implements local mode fow Apache Ivy, which allows artifact
+resolution using XMvn resolver. To enable all features, it's necessary
+to install also rh-java-common-ivy-local package, or <scl-prefix>ivy-local
+package from other compatible Software Collection.
 
 %package -n %{?scl_prefix}python-javapackages
 Summary:        Module for handling various files for Java packaging
@@ -111,14 +132,24 @@ Module for handling, querying and manipulating of various files for Java
 packaging in Linux distributions
 
 %package -n %{?scl_prefix}javapackages-local
-Summary:        Non-essential macros and scripts for Java packaging support
-Requires:       %{name} = %{version}-%{release}
+Summary:        Non-essential tools for Java packaging
+Requires:       %{?scl_prefix}javapackages-local-support = %{version}-%{release}
 Requires:       %{?scl_prefix_maven}xmvn-install >= 2
 Requires:       %{?scl_prefix_maven}xmvn-subst >= 2
 Requires:       %{?scl_prefix_maven}xmvn-resolve >= 2
 
 %description -n %{?scl_prefix}javapackages-local
-This package provides non-essential macros and scripts to support Java packaging.
+This package provides non-essential tools for Java packaging.
+
+%package -n %{?scl_prefix}javapackages-local-support
+Summary:        Non-essential macros and scripts for Java packaging support
+Requires:       %{name} = %{version}-%{release}
+
+%description -n %{?scl_prefix}javapackages-local-support
+This package provides non-essential macros and scripts to support Java
+packaging. To enable all features, it's necessary to install also
+rh-java-common-javapackages-local package, or <scl-prefix>javapackages-local
+package from other compatible Software Collection.
 
 %prep
 %setup -q -n javapackages-%{version}
@@ -176,17 +207,23 @@ cp etc/javapackages-config.json.1 etc/javapackages-config.json
 %files -f files-common
 %doc LICENSE
 
-%files -n %{?scl_prefix}javapackages-local -f files-local
+%files -n %{?scl_prefix}javapackages-local
+%files -n %{?scl_prefix}javapackages-local-support -f files-local
 
-%files -n %{?scl_prefix}maven-local -f files-maven
+%files -n %{?scl_prefix}maven-local
+%files -n %{?scl_prefix}maven-local-support -f files-maven
 
-%files -n %{?scl_prefix}ivy-local -f files-ivy
+%files -n %{?scl_prefix}ivy-local
+%files -n %{?scl_prefix}ivy-local-support -f files-ivy
 
 %files -n %{?scl_prefix}python-javapackages
 %doc LICENSE
 %{?_scl_root}%{python_sitelib}/javapackages*
 
 %changelog
+* Mon Jan 25 2016 Michal Srb <msrb@redhat.com> - 4.3.2-1.11
+- Move all macros and scripts to the "support" subpackages (Resolves: rhbz#1298464)
+
 * Wed Jul 22 2015 Michal Srb <msrb@redhat.com> - 4.3.2-1.10
 - Fix incorrect quotation in java-functions
 - Resolves: rhbz#1245266
