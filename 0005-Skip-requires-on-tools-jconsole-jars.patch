@@ -1,0 +1,33 @@
+From f41bce5c1c8a814d12ae25e661113a135d920b83 Mon Sep 17 00:00:00 2001
+From: Stanislav Ochotnicky <sochotnicky@redhat.com>
+Date: Tue, 18 Feb 2014 19:51:33 +0100
+Subject: [PATCH 5/5] Skip requires on tools/jconsole jars
+
+This is not really needed and fixes problems with namespaced tools which are
+actually in base system OpenJDK
+---
+ depgenerators/maven.req | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/depgenerators/maven.req b/depgenerators/maven.req
+index 5bd6c34..8959f3f 100755
+--- a/depgenerators/maven.req
++++ b/depgenerators/maven.req
+@@ -98,6 +98,14 @@ class TagBuilder:
+ 
+         unknown_deps = []
+         for dependency in depmap.get_required_artifacts():
++            # skip requires on OpenJDK tools/jconsole jars
++            # they are usually not namespaced and this won't break 
++            # applications
++            if ((dependency.groupId == 'com.sun' and
++                 dependency.artifactId == 'tools') or
++                (dependency.groupId == 'sun.jdk' and
++                 dependency.artifactid == 'jconsole')):
++                continue
+             if dependency.version == "UNKNOWN":
+                 unknown_deps.append(dependency)
+                 continue
+-- 
+1.8.5.3
+

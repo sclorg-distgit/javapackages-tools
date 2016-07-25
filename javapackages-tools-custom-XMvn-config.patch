@@ -1,0 +1,95 @@
+From 52e82a1e479455cbcaf3a7fe95ccd12dbdcb6455 Mon Sep 17 00:00:00 2001
+From: Mikolaj Izdebski <mizdebsk@redhat.com>
+Date: Tue, 11 Feb 2014 17:20:25 +0100
+Subject: [PATCH] Use custom XMvn config
+
+---
+ configs/configuration-20.xml | 30 ++++++++++++++++++++++++++++--
+ 1 file changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/configs/configuration-20.xml b/configs/configuration-20.xml
+index 883d6b1..b7eca4c 100644
+--- a/configs/configuration-20.xml
++++ b/configs/configuration-20.xml
+@@ -6,6 +6,7 @@
+     </metadataRepositories>
+     <prefixes>
+       <prefix>/</prefix>
++      <prefix>/opt/rh/maven30/root</prefix>
+     </prefixes>
+     <blacklist>
+       <artifact>
+@@ -29,7 +30,7 @@
+   <installerSettings>
+     <enableRawPoms>true</enableRawPoms>
+     <enableEffectivePoms>true</enableEffectivePoms>
+-    <metadataDir>usr/share/maven-fragments</metadataDir>
++    <metadataDir>opt/rh/maven30/root/usr/share/maven-fragments</metadataDir>
+     <installRoot>.xmvn/root</installRoot>
+   </installerSettings>
+   <artifactManagement>
+@@ -115,6 +116,19 @@
+       </configuration>
+     </repository>
+     <repository>
++      <id>maven30-resolve</id>
++      <type>compound</type>
++      <properties>
++        <prefix>opt/rh/maven30/root</prefix>
++        <namespace>maven30</namespace>
++      </properties>
++      <configuration>
++        <repositories>
++          <repository>base-resolve</repository>
++        </repositories>
++      </configuration>
++    </repository>
++    <repository>
+       <id>resolve-system</id>
+       <type>compound</type>
+       <properties>
+@@ -122,7 +136,7 @@
+       </properties>
+       <configuration>
+         <repositories>
+-          <repository>base-resolve</repository>
++          <repository>maven30-resolve</repository>
+         </repositories>
+       </configuration>
+     </repository>
+@@ -153,6 +167,10 @@
+     <repository>
+       <id>install</id>
+       <type>compound</type>
++      <properties>
++        <prefix>opt/rh/maven30/root</prefix>
++        <namespace>maven30</namespace>
++      </properties>
+       <configuration>
+         <repositories>
+           <repository>base-install</repository>
+@@ -162,6 +180,10 @@
+     <repository>
+       <id>install-raw-pom</id>
+       <type>compound</type>
++      <properties>
++        <prefix>opt/rh/maven30/root</prefix>
++        <namespace>maven30</namespace>
++      </properties>
+       <configuration>
+         <repositories>
+           <repository>base-raw-pom</repository>
+@@ -171,6 +193,10 @@
+     <repository>
+       <id>install-effective-pom</id>
+       <type>compound</type>
++      <properties>
++        <prefix>opt/rh/maven30/root</prefix>
++        <namespace>maven30</namespace>
++      </properties>
+       <configuration>
+         <repositories>
+           <repository>base-effective-pom</repository>
+-- 
+1.8.4.2
+

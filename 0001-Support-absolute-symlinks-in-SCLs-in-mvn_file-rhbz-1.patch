@@ -1,0 +1,154 @@
+From 6405dfa42ff8d12fb6f810041aa89243f6ae7433 Mon Sep 17 00:00:00 2001
+From: Stanislav Ochotnicky <sochotnicky@redhat.com>
+Date: Wed, 4 Dec 2013 17:47:06 +0100
+Subject: [PATCH 1/3] Support absolute symlinks in SCLs in mvn_file
+ (rhbz#1038553)
+
+---
+ java-utils/mvn_file.py                 | 11 +++++------
+ python/javapackages/xmvn_config.py     | 10 ++++++----
+ test/data/mvn_file/absolute1_00001.xml |  3 ++-
+ test/mvn_file_test.py                  | 27 +++++----------------------
+ 4 files changed, 18 insertions(+), 33 deletions(-)
+
+diff --git a/java-utils/mvn_file.py b/java-utils/mvn_file.py
+index e059129..c59ed6c 100644
+--- a/java-utils/mvn_file.py
++++ b/java-utils/mvn_file.py
+@@ -35,7 +35,7 @@ import sys
+ 
+ from javapackages.artifact import (Artifact, ArtifactFormatException,
+                                    ArtifactValidationException)
+-from javapackages.xmvn_config import XMvnConfig
++from javapackages.xmvn_config import XMvnConfig, XMvnConfigException
+ 
+ class SaneParser(optparse.OptionParser):
+     def format_epilog(self, formatter):
+@@ -61,10 +61,6 @@ commons-lang:commons-lang:war:test-jar:3.1
+ if __name__ == "__main__":
+     parser = SaneParser(usage=usage,
+                         epilog=epilog)
+-    parser.add_option("-p", "--prefix",
+-                      help="Set prefix for converting absolute paths to "+
+-                           "relative",
+-                      default="/usr/share/java")
+     for index, arg in enumerate(sys.argv):
+         sys.argv[index] = arg.decode(sys.getfilesystemencoding())
+ 
+@@ -75,8 +71,11 @@ if __name__ == "__main__":
+     try:
+         orig = Artifact.from_mvn_str(args[0])
+         orig.validate(allow_backref=False)
+-        XMvnConfig().add_file_mapping(orig, args[1:], options.prefix)
++        XMvnConfig().add_file_mapping(orig, args[1:])
+     except (ArtifactValidationException, ArtifactFormatException), e:
+         parser.error("{e}: Provided artifact strings were invalid. "
+                      "Please see help  and check your arguments".format(e=e))
+         sys.exit(1)
++    except XMvnConfigException, e:
++        parser.error("Incorrect configuration: {e}".format(e=e))
++        sys.exit(1)
+diff --git a/python/javapackages/xmvn_config.py b/python/javapackages/xmvn_config.py
+index 838bde9..da22f0b 100644
+--- a/python/javapackages/xmvn_config.py
++++ b/python/javapackages/xmvn_config.py
+@@ -43,6 +43,9 @@ from lxml.etree import ElementTree, Element, SubElement
+ 
+ from javapackages.artifact import ArtifactValidationException
+ 
++class XMvnConfigException(Exception):
++    pass
++
+ class XMvnConfig(object):
+     """
+     Class for modifying XMvn configuration
+@@ -205,7 +208,7 @@ class XMvnConfig(object):
+         elems.append(velem)
+         self.__add_config("artifactManagement", "rule", content=elems)
+ 
+-    def add_file_mapping(self, artifact, paths, prefix="/"):
++    def add_file_mapping(self, artifact, paths):
+         """
+         Change where on filesystem given artifact is installed
+ 
+@@ -217,6 +220,8 @@ class XMvnConfig(object):
+         main = artifact.get_xml_element(root="artifactGlob")
+         elems = [main]
+         felem = Element("files")
++        if not [path for path in paths if not os.path.isabs(path)]:
++            raise XMvnConfigException("At least one path must be relative")
+         for path in paths:
+             backrefs = self.__count_backreferences(path)
+             if backrefs > wild_groups:
+@@ -224,9 +229,6 @@ class XMvnConfig(object):
+                                                   "is higher than wildcard "
+                                                   "groups.")
+             pe = SubElement(felem, "file")
+-
+-            if os.path.isabs(path):
+-                path = os.path.relpath(path, prefix)
+             pe.text = path
+         elems.append(felem)
+         self.__add_config("artifactManagement", "rule", content=elems)
+diff --git a/test/data/mvn_file/absolute1_00001.xml b/test/data/mvn_file/absolute1_00001.xml
+index 82aeba1..2a56449 100644
+--- a/test/data/mvn_file/absolute1_00001.xml
++++ b/test/data/mvn_file/absolute1_00001.xml
+@@ -11,7 +11,8 @@
+ 	<groupId>a</groupId>
+       </artifactGlob>
+       <files>
+-	<file>sym</file>
++        <file>file</file>
++        <file>/usr/share/java/sym</file>
+       </files>
+     </rule>
+   </artifactManagement>
+diff --git a/test/mvn_file_test.py b/test/mvn_file_test.py
+index 09a2648..4792497 100644
+--- a/test/mvn_file_test.py
++++ b/test/mvn_file_test.py
+@@ -234,7 +234,7 @@ class TestMvnFile(unittest.TestCase):
+                  ['artifactGlob'])
+             self.assertFalse(report, '\n' + report)
+ 
+-    @xmvnconfig('mvn_file',['a:b', '/usr/share/java/sym', ])
++    @xmvnconfig('mvn_file',['a:b', 'file', '/usr/share/java/sym'])
+     def test_absolute1(self, stdout, stderr, return_value):
+         self.assertEquals(return_value, 0)
+         filelist = get_config_file_list()
+@@ -245,27 +245,10 @@ class TestMvnFile(unittest.TestCase):
+                  ['artifactGlob'])
+             self.assertFalse(report, '\n' + report)
+ 
+-    @xmvnconfig('mvn_file',['-p', '/usr/share/', 'a:b', '/usr/share/sym', ])
+-    def test_prefix1(self, stdout, stderr, return_value):
+-        self.assertEquals(return_value, 0)
+-        filelist = get_config_file_list()
+-        self.assertEquals(len(filelist), 1)
+-        for filename in filelist:
+-            report = compare_xml_files(get_actual_config(filename),
+-                 get_expected_config(filename, 'mvn_file', 'prefix1'),
+-                 ['artifactGlob'])
+-            self.assertFalse(report, '\n' + report)
+-
+-    @xmvnconfig('mvn_file',['-p', '/usr', 'a:b', '/usr/share/sym', ])
+-    def test_prefix2(self, stdout, stderr, return_value):
+-        self.assertEquals(return_value, 0)
+-        filelist = get_config_file_list()
+-        self.assertEquals(len(filelist), 1)
+-        for filename in filelist:
+-            report = compare_xml_files(get_actual_config(filename),
+-                 get_expected_config(filename, 'mvn_file', 'prefix2'),
+-                 ['artifactGlob'])
+-            self.assertFalse(report, '\n' + report)
++    @xmvnconfig('mvn_file',['a:b', '/usr/share/java/sym', ])
++    def test_absolute2(self, stdout, stderr, return_value):
++        self.assertNotEqual(return_value, 0)
++        self.assertTrue(stderr)
+ 
+ if __name__ == '__main__':
+     unittest.main()
+-- 
+1.8.5.3
+

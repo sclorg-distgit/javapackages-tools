@@ -1,0 +1,38 @@
+From cf8978c21d0a6f0bf9a00983f123597c8bb331b6 Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 12 Feb 2014 18:24:13 +0100
+Subject: [PATCH 2/3] [macros] Fix add_maven_depmap for SCL usage
+
+Use %{pkg_name} when calling without arguments
+Let's make sure we install fragment file without prefix
+---
+ etc/macros.fjava | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/etc/macros.fjava b/etc/macros.fjava
+index bdfd624..e2a41e6 100644
+--- a/etc/macros.fjava
++++ b/etc/macros.fjava
+@@ -52,8 +52,8 @@
+ set -e \
+ # default values \
+ %if %# == 0 \
+-   _pompart="JPP-%{name}.pom" \
+-   _jarpart="%{name}.jar" \
++   _pompart="JPP-%{?scl:%{pkg_name}}%{!?scl:%{name}}.pom" \
++   _jarpart="%{?scl:%{pkg_name}}%{!?scl:%{name}}.jar" \
+ %else \
+    _pompart="%1" \
+    _jarpart="%2" \
+@@ -67,7 +67,7 @@ for _dir in %{_jnidir} %{_javajnidir} %{_javadir}; do \
+ done \
+ python -m %{javadir}-utils/maven_depmap %{-a} %{-v*:-r %{-v*}} \\\
+           -p "%{_prefix}" -n "%{?scl}" \\\
+-          %{buildroot}%{_mavendepmapfragdir}/%{name}%{-f*:-%{-f*}} \\\
++          %{buildroot}%{_mavendepmapfragdir}/%{?scl:%{pkg_name}}%{!?scl:%{name}}%{-f*:-%{-f*}} \\\
+           %{buildroot}%{_mavenpomdir}/$_pompart \\\
+ %if %# == 2 \
+           "${_jpath}" \\\
+-- 
+1.8.5.3
+
