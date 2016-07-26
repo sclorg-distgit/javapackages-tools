@@ -1,0 +1,22 @@
+From 48f15f58877e3fc70d81f1ff55eac89407dd48ce Mon Sep 17 00:00:00 2001
+From: Stanislav Ochotnicky <sochotnicky@redhat.com>
+Date: Mon, 17 Feb 2014 14:43:33 +0100
+Subject: [PATCH 4/4] Fix requires on jpackage-utils for javadoc packages
+
+---
+ depgenerators/javadoc.req | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/depgenerators/javadoc.req b/depgenerators/javadoc.req
+index 842b806..d5fae59 100755
+--- a/depgenerators/javadoc.req
++++ b/depgenerators/javadoc.req
+@@ -1,4 +1,4 @@
+ #!/bin/sh
+ cat >/dev/null
+ # always required for javadocs
+-echo jpackage-utils
++echo maven30-runtime
+-- 
+1.8.5.3
+

@@ -1,0 +1,26 @@
+From 8c19c2aeaf637d39ade97c6b644ca174b3a8a8d0 Mon Sep 17 00:00:00 2001
+From: Stanislav Ochotnicky <sochotnicky@redhat.com>
+Date: Tue, 11 Feb 2014 11:33:17 +0100
+Subject: [PATCH 3/3] [macros] Fix xmvn-install for SCL usage
+
+The passed package name was incorrect for xmvn-install
+---
+ etc/macros.xmvn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/etc/macros.xmvn b/etc/macros.xmvn
+index 5ec8123..707dac2 100644
+--- a/etc/macros.xmvn
++++ b/etc/macros.xmvn
+@@ -141,7 +141,7 @@
+ # buildroot. It is intended to be placed in %install section of spec file.
+ #
+ %mvn_install(J:X) \
+-xmvn-install %{?-X} -R .xmvn-reactor -n "${RPM_PACKAGE_NAME}" -d "%{buildroot}" \
++xmvn-install %{?-X} -R .xmvn-reactor -n %{?scl:%{pkg_name}}%{!?scl:%{name}} -d "%{buildroot}" \
+ jdir="%{-J*:%{-J*}}%{!-J*:target/site/apidocs}" \
+ if [ -d "${jdir}" ]; then \
+    install -dm755 %{buildroot}%{_javadocdir}/%{name} \
+-- 
+1.8.5.3
+
