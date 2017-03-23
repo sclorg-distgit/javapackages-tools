@@ -4,7 +4,7 @@
 
 Name:           %{?scl_prefix}%{pkg_name}
 Version:        4.3.2
-Release:        1.11%{?dist}
+Release:        1.12%{?dist}
 
 Summary:        Macros and scripts for Java packaging support
 
@@ -221,6 +221,10 @@ cp etc/javapackages-config.json.1 etc/javapackages-config.json
 %{?_scl_root}%{python_sitelib}/javapackages*
 
 %changelog
+* Mon Jan 16 2017 Michael Simacek <msimacek@redhat.com> - 4.3.2-1.12
+- Generate autorequires on java-headless instead of java
+- Resolves: rhbz#1413543
+
 * Mon Jan 25 2016 Michal Srb <msrb@redhat.com> - 4.3.2-1.11
 - Move all macros and scripts to the "support" subpackages (Resolves: rhbz#1298464)
 
