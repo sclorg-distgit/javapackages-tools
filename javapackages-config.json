@@ -4,7 +4,7 @@
             "rh-java-common-runtime"
         ],
         "java_requires": {
-            "package_name": "java",
+            "package_name": "java-headless",
             "always_generate": true,
             "skip": false
         },
