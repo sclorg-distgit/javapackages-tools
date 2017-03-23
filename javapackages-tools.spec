@@ -4,7 +4,7 @@
 
 Name:           %{?scl_prefix}%{pkg_name}
 Version:        4.3.2
-Release:        1.13%{?dist}
+Release:        1.14%{?dist}
 
 Summary:        Macros and scripts for Java packaging support
 
@@ -35,6 +35,8 @@ BuildRequires:  scl-utils-build
 #BuildRequires:  %{?scl_prefix}xmvn-resolve >= 2
 
 Requires:       coreutils
+Requires:       findutils
+Requires:       which
 Requires:       lua
 Requires:       %{?scl_prefix}python-javapackages = %{version}-%{release}
 Requires:       python
@@ -221,6 +223,10 @@ cp etc/javapackages-config.json.1 etc/javapackages-config.json
 %{?_scl_root}%{python_sitelib}/javapackages*
 
 %changelog
+* Tue Jan 17 2017 Michael Simacek <msimacek@redhat.com> - 4.3.2-1.14
+- Add requires on which and findutils
+- Resolves: rhbz#1413880
+
 * Mon Jan 16 2017 Michael Simacek <msimacek@redhat.com> - 4.3.2-1.13
 - Rebuild to regenerate autorequires
 
