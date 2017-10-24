@@ -23,7 +23,7 @@
 
 Name:           %{?scl_prefix}javapackages-tools
 Version:        5.0.0
-Release:        2.3%{?dist}
+Release:        2.4%{?dist}
 
 Summary:        Macros and scripts for Java packaging support
 
@@ -112,6 +112,7 @@ artifact resolution using XMvn resolver.
 Summary:        Module for handling various files for Java packaging
 Requires:       %{python_prefix}-lxml
 Requires:       %{python_prefix}-six
+Requires:       %{name} = %{version}-%{release}
 
 %description -n %{?scl_prefix}%{python_prefix}-javapackages
 Module for handling, querying and manipulating of various files for Java
@@ -153,6 +154,8 @@ rm -rf %{buildroot}%{_datadir}/gradle-local
 rm -rf %{buildroot}%{_mandir}/man7/gradle_build.7
 %endif
 
+mkdir -p %{buildroot}%{_defaultlicensedir}
+
 %if %{with tests}
 
 %check
@@ -160,6 +163,20 @@ rm -rf %{buildroot}%{_mandir}/man7/gradle_build.7
 %endif
 
 %files -f files-common
+%license LICENSE
+%dir %_scl_prefix
+%dir %attr(555,root,root) %{_scl_root}
+%dir %attr(555,root,root) %{_scl_scripts}
+%dir %{_sysconfdir}
+%dir %{_prefix}
+%dir %attr(555,root,root) %{_prefix}/lib
+%dir %attr(555,root,root) %{_bindir}
+%dir %{_datadir}
+%dir %{_mandir}
+%dir %{_mandir}/*
+%dir %{_defaultlicensedir}
+%dir %{_prefix}/lib/python2.*
+%dir %{_sysconfdir}/ant.d
 
 %files -n %{?scl_prefix}javapackages-local -f files-local
 
@@ -176,6 +193,9 @@ rm -rf %{buildroot}%{_mandir}/man7/gradle_build.7
 %license LICENSE
 
 %changelog
+* Mon Sep 04 2017 Michael Simacek <msimacek@redhat.com> - 5.0.0-2.4
+- Own all used directories
+
 * Tue Jul 11 2017 Michael Simacek <msimacek@redhat.com> - 5.0.0-2.3
 - Fix default JRE path
 
